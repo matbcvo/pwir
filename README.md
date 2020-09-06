@@ -16,6 +16,8 @@ Maksym Del - Programming
 
     + 3D designs etc related to mechanics
 
+  + README.md
+
 ## Tasks
 
 https://pwir.ee/
