@@ -1,2 +1,5 @@
-# pwir
-Practical Work in Robotics
+# Practical Work in Robotics
+## Team
+Martin Vooremäe - Programming / Electronics / Mechanics
+
+Maksym Del - Programming
