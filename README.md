@@ -10,7 +10,7 @@ Maksym Del - Programming
 
   + code
 
-    + Python files etc that are needed for robot
+    + Python files etc that are needed for robot to work
 
   + design
 
