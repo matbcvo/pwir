@@ -10,17 +10,7 @@ Aksel Bulavs - Mechanics
 
 + root
 
-  + code
-
-    + Python files etc that are needed for robot to work
-
-  + mechanics
-
-    + 3D designs etc related to mechanics
-    
-  + electronics
-  
-    + schematics etc related to electronics
+  + Python files etc that are needed for robot to work
 
   + README.md
 
