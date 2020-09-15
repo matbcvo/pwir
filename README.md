@@ -2,8 +2,6 @@
 ## Team
 Martin Vooremäe - Programming / Electronics
 
-Maksym Del - Programming
-
 Aksel Bulavs - Mechanics
 
 ## Repository structure
