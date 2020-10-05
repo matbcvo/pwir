@@ -3,10 +3,11 @@
 # 2. Get colors from colors.json
 # 3. Display filtered image
 
-
+from imutils.video import VideoStream
 import cv2
 import json
 import numpy as np
+import imutils
 
 # Load saved color values from colors.json
 try:
@@ -30,7 +31,11 @@ while cap.isOpened():
     # 1. OpenCV gives you a BGR image
     _, bgr = cap.read()
     #cv2.imshow("bgr", bgr)
-
+    
+    #siin mingi jama, järgmine kord findcontours()
+    #bgr = imutils.resize(bgr, height=600)
+    #blurred = cv2.GaussianBlur(bgr, (11, 11), 0)
+    
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
     #cv2.imshow("hsv", hsv)
@@ -41,9 +46,11 @@ while cap.isOpened():
     for color, filters in saved_colors.items():
         color_mask = cv2.inRange(hsv, tuple(filters["min"]), tuple(filters["max"]))
         mask = cv2.bitwise_or(mask, color_mask)
-    
+        
     filtered_image = cv2.bitwise_or(bgr, bgr, mask=mask)
+    
     cv2.imshow("image", filtered_image)
+    #cv2.imshow("image", blurred)
 
     # 4. TODO: locate ball and basket coordinates
     
