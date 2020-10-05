@@ -19,12 +19,12 @@ print("Saved colors: ", saved_colors)
 
 
 # Start video capture
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 #Set up blob detector
-detector = cv2.SimpleBlobDetector()
+#detector = cv2.SimpleBlobDetector()
 
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image

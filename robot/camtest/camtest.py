@@ -52,12 +52,12 @@ cv2.createTrackbar("s_max", "mask", filters["max"][1], 255, partial(update_range
 cv2.createTrackbar("v_max", "mask", filters["max"][2], 255, partial(update_range, "max", 2))
 
 # Start video capture
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(4)
 
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
     _, bgr = cap.read()
-    #cv2.imshow("bgr", bgr)
+    cv2.imshow("bgr", bgr)
 
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
