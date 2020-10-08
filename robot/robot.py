@@ -24,8 +24,9 @@ cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-#Set up blob detector
-#detector = cv2.SimpleBlobDetector()
+#list of points
+pts = deque(maxlen=args["buffer"])
+
 
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
@@ -48,11 +49,34 @@ while cap.isOpened():
         mask = cv2.bitwise_or(mask, color_mask)
         
     filtered_image = cv2.bitwise_or(bgr, bgr, mask=mask)
-    
-    cv2.imshow("image", filtered_image)
-    #cv2.imshow("image", blurred)
+    blurred = cv2.GaussianBlur(filtered_image, (11, 11), 0)
+    img_gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+    ret, im = cv2.threshold(img_gray, 65, 255, cv2.THRESH_BINARY_INV)
+    img, contours, hierarchy  = cv2.findContours(im, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    print("Number of Contours found = " + str(len(contours)))
+    cv2.drawContours(img, contours, -1, (0,255,255), 5)
+    cv2.imshow("img", img)
 
     # 4. TODO: locate ball and basket coordinates
+    # only proceed if at least one contour was found
+    if len(contours) > 0:
+	    # find the largest contour in the mask, then use
+	    # it to compute the minimum enclosing circle and
+	    # centroid
+	    c = max(contours, key=cv2.contourArea)
+	    ((x, y), radius) = cv2.minEnclosingCircle(c)
+	    M = cv2.moments(c)
+	    center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+	    # only proceed if the radius meets a minimum size
+	    if radius > 10:
+	    	# draw the circle and centroid on the frame,
+	    	# then update the list of tracked points
+	    	cv2.circle(img, (int(x), int(y)), int(radius),
+	    		(0, 255, 255), 2)
+	    	cv2.circle(img, center, 5, (0, 0, 255), -1)
+    # update the points queue
+    pts.appendleft(center)
+    
     
     key = cv2.waitKey(10)
 
