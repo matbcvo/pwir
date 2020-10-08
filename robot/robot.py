@@ -3,6 +3,7 @@
 # 2. Get colors from colors.json
 # 3. Display filtered image
 
+from collections import deque
 from imutils.video import VideoStream
 import cv2
 import json
