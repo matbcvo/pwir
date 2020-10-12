@@ -2,7 +2,12 @@
 # 1. Show webcam
 # 2. Get colors from colors.json
 # 3. Display filtered image
+<<<<<<< HEAD
 from collections import deque
+=======
+
+from collections import deque
+>>>>>>> 63e92b6d6233f5be3a133f3998f6a681b3b3e10d
 from imutils.video import VideoStream
 import cv2
 import json
