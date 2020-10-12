@@ -6,8 +6,11 @@
 from collections import deque
 =======
 
+<<<<<<< HEAD
 from collections import deque
 >>>>>>> 63e92b6d6233f5be3a133f3998f6a681b3b3e10d
+=======
+>>>>>>> 6b67894856381e027699c99381cac1da1688c9fa
 from imutils.video import VideoStream
 import cv2
 import json
