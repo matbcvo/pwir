@@ -2,7 +2,7 @@
 # 1. Show webcam
 # 2. Get colors from colors.json
 # 3. Display filtered image
-
+from collections import deque
 from imutils.video import VideoStream
 import cv2
 import json
@@ -23,10 +23,6 @@ print("Saved colors: ", saved_colors)
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-#list of points
-pts = deque(maxlen=args["buffer"])
-
 
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
@@ -54,7 +50,7 @@ while cap.isOpened():
     ret, im = cv2.threshold(img_gray, 65, 255, cv2.THRESH_BINARY_INV)
     img, contours, hierarchy  = cv2.findContours(im, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     print("Number of Contours found = " + str(len(contours)))
-    cv2.drawContours(img, contours, -1, (0,255,255), 5)
+    #cv2.drawContours(img, contours, -1, (0,255,255), 5)
     cv2.imshow("img", img)
 
     # 4. TODO: locate ball and basket coordinates
@@ -65,18 +61,18 @@ while cap.isOpened():
 	    # centroid
 	    c = max(contours, key=cv2.contourArea)
 	    ((x, y), radius) = cv2.minEnclosingCircle(c)
+	    print("c:", c)
 	    M = cv2.moments(c)
 	    center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+	    print("This is the center:", center)
 	    # only proceed if the radius meets a minimum size
-	    if radius > 10:
+	    """if radius > 10:
 	    	# draw the circle and centroid on the frame,
 	    	# then update the list of tracked points
 	    	cv2.circle(img, (int(x), int(y)), int(radius),
 	    		(0, 255, 255), 2)
-	    	cv2.circle(img, center, 5, (0, 0, 255), -1)
-    # update the points queue
-    pts.appendleft(center)
-    
+	    	cv2.circle(img, center, 5, (0, 0, 255), -1)"""
+                
     
     key = cv2.waitKey(10)
 
