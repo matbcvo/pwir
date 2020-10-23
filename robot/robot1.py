@@ -13,13 +13,14 @@ import imutils
 
 #saada koordid "sd:0:0:0" kujul
 #gs = get speed
-
+ball_y_requirement = 340
 #ser = serial.Serial('/dev/ttyACM0')  # open serial port
 #print(ser.name)         # check which port was really used
 ser=serial.Serial('/dev/ttyACM0', 115200, timeout=0.00001)
-ser.write(b'hello')     # write a string
-print(ser)
-ser.close()
+#encoding = encoding
+#ser.write(b'hello')     # write a string
+#print(ser)
+
 # Load saved color values from colors.json
 try:
     with open("colors.json", "r") as f:
@@ -28,21 +29,30 @@ except FileNotFoundError:
     saved_colors = {}
 
 print("Saved colors: ", saved_colors)
+def stop():
+    ser.write(f"sd:0:0:0\n".encode())
 
-
+def right():
+    ser.write(f"sd:5:5:5\n".encode())
+    #get = ser.readline().decode()
+    #print("get:", get)
+    
+def left():
+    ser.write(f"sd:-5:-5:-5\n".encode())
+    #get = ser.readline().decode()
+    #print("get:", get)
+    
 # Start video capture
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
+cam_heating_timer = 0
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
     _, bgr = cap.read()
-    #cv2.imshow("bgr", bgr)
     
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-    #cv2.imshow("hsv", hsv)
 
     # 3. Use filters on HSV image
     mask = np.zeros((height, width), np.uint8)
@@ -59,31 +69,50 @@ while cap.isOpened():
     print("Number of Contours found = " + str(len(contours)))
     cv2.drawContours(img, contours, -1, (0,255,255), 5)
     
-    #cv2.imshow("filtered image", filtered_image)
     # 4. TODO: locate ball and basket coordinates
     # only proceed if at least one contour was found
     if len(contours) > 0:
-	    # find the largest contour in the mask, then use
-	    # it to compute the minimum enclosing circle and
-	    # centroid
-	    c = max(contours, key=cv2.contourArea)
-	    ((x, y), radius) = cv2.minEnclosingCircle(c)
-	    #print("c:", c)
-	    M = cv2.moments(c)
-	    center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-	    print("This is the center:", center)
-	    # only proceed if the radius meets a minimum size
-	    if radius > 5:
-	    	# draw the circle and centroid on the frame,
-	    	# then update the list of tracked points
-	    	cv2.circle(filtered_image, (int(x), int(y)), int(radius),
-	    		(0, 255, 255), 2)
-	    	cv2.circle(filtered_image, center, 5, (0, 0, 255), -1)
+        # find the largest contour in the mask, then use
+        # it to compute the minimum enclosing circle and
+        # centroid
+        c = max(contours, key=cv2.contourArea)
+        ((x, y), radius) = cv2.minEnclosingCircle(c)
+        #print("c:", c)
+        M = cv2.moments(c)
+        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        print("This is the center:", center)
+        # only proceed if the radius meets a minimum size
+        if radius > 7:
+            # draw the circle and centroid on the frame,
+            # then update the list of tracked points
+            cv2.circle(filtered_image, (int(x), int(y)), int(radius),
+                    (0, 255, 255), 2)
+            cv2.circle(filtered_image, center, 5, (0, 0, 255), -1)
+            #give some time for camera to "warm up"
+            if cam_heating_timer > 100:
+                #print("lezgo")
+                if center[0] < 350 and center[0]>310 :
+                    print("Ball straight ahead!")
+                    stop()
+                elif center[0] <310:
+                    print("Ball too far left")
+                    left()
+                elif center[0] > 350:
+                    print("Ball too far right")
+                    right()
+                else:
+                    right()
+    elif cam_heating_timer > 100:
+        right()
+	    	
     cv2.imshow("img", img)
     cv2.imshow("filtered", filtered_image)
     
+    
+    
+    cam_heating_timer += 1
+    
     key = cv2.waitKey(10)
-
     if key & 0xFF == ord("q"):
         break
 
