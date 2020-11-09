@@ -14,9 +14,10 @@ import imutils
 #saada koordid "sd:0:0:0" kujul
 #gs = get speed
 ball_y_requirement = 340
-#ser = serial.Serial('/dev/ttyACM0')  # open serial port
-#print(ser.name)         # check which port was really used
+#ser = serial.Serial('/dev/ttyACM1')  # open serial port
+         # check which port was really used
 ser=serial.Serial('/dev/ttyACM0', 115200, timeout=0.00001)
+print(ser.name)
 #encoding = encoding
 #ser.write(b'hello')     # write a string
 #print(ser)
@@ -42,6 +43,16 @@ def left():
     #get = ser.readline().decode()
     #print("get:", get)
     
+def fwd():
+    ser.write(f"sd:-10:10:0\n".encode())
+    
+"""def omni():
+    #robotSpeed = sqrt(robotSpeedX * robotSpeedX + robotSpeedY * robotSpeedY)
+    robotSpeed = 1
+    
+    robortDirectionAngle = atan2(robotSpeedY, robotSpeedX)
+    #640x400ish
+    rightWheelLinVelo = robotSpeed * cos(robotDirectionAngle - wheelAngle)"""
 # Start video capture
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -53,7 +64,7 @@ while cap.isOpened():
     
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-
+    #cv2.imshow("hsv", hsv)
     # 3. Use filters on HSV image
     mask = np.zeros((height, width), np.uint8)
 
@@ -91,10 +102,13 @@ while cap.isOpened():
             #give some time for camera to "warm up"
             if cam_heating_timer > 100:
                 #print("lezgo")
-                if center[0] < 350 and center[0]>310 :
+                if center[0] < 350 and center[0]>330 :
                     print("Ball straight ahead!")
-                    stop()
-                elif center[0] <310:
+                    fwd()
+                    #print(center[1])
+                    if center[1] > 280:
+                        stop()
+                elif center[0] <330:
                     print("Ball too far left")
                     left()
                 elif center[0] > 350:
@@ -107,7 +121,8 @@ while cap.isOpened():
 	    	
     cv2.imshow("img", img)
     cv2.imshow("filtered", filtered_image)
-    
+    get = ser.readline().decode()
+    print("get:", get)
     
     
     cam_heating_timer += 1
