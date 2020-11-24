@@ -12,16 +12,9 @@ import numpy as np
 import imutils
 import math
 
-#saada koordid "sd:0:0:0" kujul
-#gs = get speed
 ball_y_requirement = 340
-#ser = serial.Serial('/dev/ttyACM1')  # open serial port
-         # check which port was really used
 ser=serial.Serial('/dev/ttyACM0', 115200, timeout=0.00001)
 print(ser.name)
-#encoding = encoding
-#ser.write(b'hello')     # write a string
-#print(ser)
 
 # Load saved color values from colors.json
 try:
@@ -47,19 +40,23 @@ def left():
 def fwd():
     ser.write(f"sd:-10:10:0\n".encode())
     
-rightWheelAngle = radians(120)
-leftWheelAngle = radians(240)
+rightWheelAngle = math.radians(120)
+leftWheelAngle = math.radians(240)
 
-"""def toBall(ball_y, ball_x):
+def toBall(ball_y, ball_x):
     #robotSpeed = sqrt(robotSpeedX * robotSpeedX + robotSpeedY * robotSpeedY)
     robotSpeed = 1
-    robortDirectionAngle = atan2(ball_y, ball_x)
+    robotDirectionAngle = math.atan2(ball_y, ball_x)
+    print("robotDirectionAngle: ",robotDirectionAngle)
     #640x400ish
-    rightWheelLinearVelocity = robotSpeed * cos(robotDirectionAngle - rightWheelAngle)
-    leftWheelLinearVelocity = robotSpeed * cos(robotDirectionAngle - leftWheelAngle)
-    print("rightWheelLinearVelocity = " + rightWheelLinearVelocity)
-    print("leftWheelLinearVelocity = " + leftWheelLinearVelocity)
-    ser.write(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":0\n".encode())"""
+    rightWheelLinearVelocity = robotSpeed * math.cos(robotDirectionAngle - rightWheelAngle)
+    leftWheelLinearVelocity = robotSpeed * math.cos(robotDirectionAngle - leftWheelAngle)
+    print("rightWheelLinearVelocity = " + str(rightWheelLinearVelocity))
+    print("leftWheelLinearVelocity = " + str(leftWheelLinearVelocity))
+    #print(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":0\n")
+    #ser.write(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":0\n".encode())
+    
+    
 # Start video capture
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -109,13 +106,14 @@ while cap.isOpened():
             #give some time for camera to "warm up"
             if cam_heating_timer > 100:
                 #print("lezgo")
-                toball(center[1], center[0])
+                toBall(center[1], center[0])
                 if center[0] < 350 and center[0]>330 :
                     print("Ball straight ahead!")
-                    fwd()
-                    #print(center[1])
+                    #fwd()
+                    toBall(center[1],center[0])
                     if center[1] > 280:
                         stop()
+                        
                 elif center[0] <330:
                     print("Ball too far left")
                     left()
