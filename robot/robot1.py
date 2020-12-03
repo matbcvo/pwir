@@ -11,6 +11,7 @@ import json
 import numpy as np
 import imutils
 import math
+###MAINBOARDIGA SUHTLEMISE LOOGIKA VIGANE; KIRJUTAN LIIGA KIIRESTI, MAINBOARD CONNECTION LÄHEB KATKI. VÕI SIIS while ser.inWaiting():
 
 ball_y_requirement = 340
 ser=serial.Serial('/dev/ttyACM0', 115200, timeout=0.00001)
@@ -40,21 +41,26 @@ def left():
 def fwd():
     ser.write(f"sd:-10:10:0\n".encode())
     
-rightWheelAngle = math.radians(120)
-leftWheelAngle = math.radians(240)
+rightWheelAngle = 120
+leftWheelAngle = 240
+rearWheelAngle = 0
 
 def toBall(ball_y, ball_x):
     #robotSpeed = sqrt(robotSpeedX * robotSpeedX + robotSpeedY * robotSpeedY)
-    robotSpeed = 1
-    robotDirectionAngle = math.atan2(ball_y, ball_x)
+    robotSpeed = -20
+    ball_x = ball_x - 320
+    robotDirectionAngle = math.degrees(math.atan2(ball_y, ball_x))
     print("robotDirectionAngle: ",robotDirectionAngle)
     #640x400ish
-    rightWheelLinearVelocity = robotSpeed * math.cos(robotDirectionAngle - rightWheelAngle)
-    leftWheelLinearVelocity = robotSpeed * math.cos(robotDirectionAngle - leftWheelAngle)
+    rightWheelLinearVelocity = robotSpeed * math.cos(math.radians(robotDirectionAngle - rightWheelAngle))
+    leftWheelLinearVelocity = robotSpeed * math.cos(math.radians(robotDirectionAngle - leftWheelAngle))
+    rearWheelLinearVelocity = robotSpeed * math.cos(math.radians(robotDirectionAngle - rearWheelAngle))
     print("rightWheelLinearVelocity = " + str(rightWheelLinearVelocity))
     print("leftWheelLinearVelocity = " + str(leftWheelLinearVelocity))
-    #print(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":0\n")
-    #ser.write(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":0\n".encode())
+    print("rearWheelLinearVelocity = " + str(rearWheelLinearVelocity))
+    print(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n")
+    ser.write(str(f"sd:"+str(int(rightWheelLinearVelocity))+":"+str(int(leftWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n").encode())
+    
     
     
 # Start video capture
@@ -65,6 +71,8 @@ cam_heating_timer = 0
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
     _, bgr = cap.read()
+    
+    #autowhitebalance ja autoexposure maha!
     
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
@@ -107,25 +115,17 @@ while cap.isOpened():
             if cam_heating_timer > 100:
                 #print("lezgo")
                 toBall(center[1], center[0])
-                if center[0] < 350 and center[0]>330 :
+                """if center[0] < 350 and center[0]>330 :
                     print("Ball straight ahead!")
                     #fwd()
-                    toBall(center[1],center[0])
-                    if center[1] > 280:
-                        stop()
+                    #toBall(center[1],center[0])"""
+                if center[1] > 280:
+                    stop()
                         
-                elif center[0] <330:
-                    print("Ball too far left")
-                    left()
-                elif center[0] > 350:
-                    print("Ball too far right")
-                    right()
-                else:
-                    right()
     elif cam_heating_timer > 100:
         right()
 	    	
-    cv2.imshow("img", img)
+    #cv2.imshow("img", img)
     cv2.imshow("filtered", filtered_image)
     get = ser.readline().decode()
     print("get:", get)
