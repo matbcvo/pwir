@@ -162,7 +162,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1); // Motor PWM for draiver 3
   HAL_TIM_PWM_Start(&htim17, TIM_CHANNEL_1); // Motor PWM for draiver 3
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1); // Thrower PWM
-  HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_2); // Thrower Angle PWM
+  //HAL_TIM_Base_Start_IT(&htim6);
   /* USER CODE END 2 */
 
   /* Infinite loop */
