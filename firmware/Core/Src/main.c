@@ -76,6 +76,7 @@ typedef struct Command { // (1) Define struct for received data.
   int16_t speed2;
   int16_t speed3;
   uint16_t throwerSpeed;
+  uint16_t throwerAngle;
   uint16_t delimiter; // (2) Delimiter is used as a separator between packets of data. Preferably something that will never appear in the data should be used.
 } Command;
 
@@ -91,6 +92,7 @@ Command command = {
   .speed2 = 0,
   .speed3 = 0,
   .throwerSpeed = 0,
+  .throwerAngle = 0,
   .delimiter = 0
 }; // (4) Instance of received data.
 
@@ -187,9 +189,19 @@ int main(void)
 		feedback.speed1 = (int16_t)TIM1->CNT;
 		feedback.speed2 = (int16_t)TIM3->CNT;
 		feedback.speed3 = (int16_t)TIM4->CNT;
-		if (command.speed1 == 1) {
+		TIM2->CCR1 = TIM2->ARR / 2; // esimene draiver
+		TIM2->CCR2 = 0; // esimene draiver
+		TIM2->CCR3 = TIM2->ARR / 2; // teine draiver
+		TIM2->CCR4 = 0; // teine draiver
+		TIM16->CCR1 = TIM16->ARR / 2; // kolmas draiver
+		TIM17->CCR1 = 0; // kolmas draiver
+		/*if (command.speed1 == 1) {
 			TIM2->CCR1 = TIM2->ARR / 2; // esimene draiver
 			TIM2->CCR2 = 0; // esimene draiver
+			TIM2->CCR3 = TIM2->ARR / 2; // esimene draiver
+			TIM2->CCR4 = 0; // esimene draiver
+			TIM16->CCR1 = TIM16->ARR / 2; // esimene draiver
+			TIM17->CCR1 = 0; // esimene draiver
 		}
 		else if (command.speed1 == 2) {
 			TIM2->CCR1 = 0; // esimene draiver
@@ -198,11 +210,15 @@ int main(void)
 		else {
 			TIM2->CCR1 = 0; // esimene draiver
 			TIM2->CCR2 = 0; // esimene draiver
-		}
-		TIM2->CCR3 = 0; // teine draiver
-		TIM2->CCR4 = 0; // teine draiver
-		TIM16->CCR1 = 0; // kolmas draiver
-		TIM17->CCR1 = 0; // kolmas draiver
+		}*/
+
+		TIM8->CCR1 = command.throwerSpeed; // thrower
+		TIM15->CCR2 = (int) TIM15->ARR * 0.1; // thrower angle
+
+		//TIM2->CCR3 = 0; // teine draiver
+		//TIM2->CCR4 = 0; // teine draiver
+		//TIM16->CCR1 = 0; // kolmas draiver
+		//TIM17->CCR1 = 0; // kolmas draiver
 		CDC_Transmit_FS(&feedback, sizeof(feedback)); // (5) Send data over USB.
 		//HAL_Delay(1000);
 	}
@@ -341,9 +357,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 50 - 1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 65535;
+  htim2.Init.Period = 63999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
@@ -576,9 +592,9 @@ static void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 1 */
   htim15.Instance = TIM15;
-  htim15.Init.Prescaler = 0;
+  htim15.Init.Prescaler = 50 - 1;
   htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim15.Init.Period = 65535;
+  htim15.Init.Period = 63999;
   htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim15.Init.RepetitionCounter = 0;
   htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -641,9 +657,9 @@ static void MX_TIM16_Init(void)
 
   /* USER CODE END TIM16_Init 1 */
   htim16.Instance = TIM16;
-  htim16.Init.Prescaler = 0;
+  htim16.Init.Prescaler = 50 - 1;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 65535;
+  htim16.Init.Period = 63999;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim16.Init.RepetitionCounter = 0;
   htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -704,9 +720,9 @@ static void MX_TIM17_Init(void)
 
   /* USER CODE END TIM17_Init 1 */
   htim17.Instance = TIM17;
-  htim17.Init.Prescaler = 0;
+  htim17.Init.Prescaler = 50 - 1;
   htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim17.Init.Period = 65535;
+  htim17.Init.Period = 63999;
   htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim17.Init.RepetitionCounter = 0;
   htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
