@@ -213,7 +213,7 @@ int main(void)
 		}*/
 
 		TIM8->CCR1 = command.throwerSpeed; // thrower
-		TIM15->CCR2 = (int) TIM15->ARR * 0.1; // thrower angle
+		TIM15->CCR2 = (int) TIM15->ARR / 0.5; // thrower angle
 
 		//TIM2->CCR3 = 0; // teine draiver
 		//TIM2->CCR4 = 0; // teine draiver
