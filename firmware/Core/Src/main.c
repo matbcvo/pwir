@@ -193,11 +193,11 @@ int main(void)
 		feedback.speed2 = (int16_t)TIM3->CNT;
 		feedback.speed3 = (int16_t)TIM4->CNT;
 
-		TIM2->CCR1 = TIM2->ARR / 2; // esimene draiver
+		TIM2->CCR1 = command.speed1; // esimene draiver
 		TIM2->CCR2 = 0; // esimene draiver
-		TIM2->CCR3 = TIM2->ARR / 2; // teine draiver
+		TIM2->CCR3 = command.speed2; // teine draiver
 		TIM2->CCR4 = 0; // teine draiver
-		TIM16->CCR1 = TIM16->ARR / 2; // kolmas draiver
+		TIM16->CCR1 = command.speed3; // kolmas draiver
 		TIM17->CCR1 = 0; // kolmas draiver
 
 		/*if (command.speed1 == 1) {
@@ -221,7 +221,7 @@ int main(void)
 		// Then set speed to 3200 ... 6400
 		TIM8->CCR1 = command.throwerSpeed; // thrower
 
-		TIM15->CCR2 = (int) TIM15->ARR / 0.5; // thrower angle
+		TIM15->CCR2 = command.throwerAngle; // thrower angle
 
 		CDC_Transmit_FS(&feedback, sizeof(feedback)); // (5) Send data over USB.
 		//HAL_Delay(1000);
