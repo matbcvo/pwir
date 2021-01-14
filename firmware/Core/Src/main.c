@@ -73,6 +73,46 @@ static void MX_TIM6_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef struct Motor {
+	uint16_t speed;
+	int16_t pGain;
+	int16_t iGain;
+	int16_t dGain;
+	int16_t position;
+	int16_t positionPrev;
+	int16_t positionChange;
+} Motor;
+
+Motor motor1Control = {
+	.speed = 0,
+	.pGain = 0,
+	.iGain = 0,
+	.dGain = 0,
+	.position = 0,
+	.positionPrev = 0,
+	.positionChange = 0
+};
+
+Motor motor2Control = {
+	.speed = 0,
+	.pGain = 0,
+	.iGain = 0,
+	.dGain = 0,
+	.position = 0,
+	.positionPrev = 0,
+	.positionChange = 0
+};
+
+Motor motor3Control = {
+	.speed = 0,
+	.pGain = 0,
+	.iGain = 0,
+	.dGain = 0,
+	.position = 0,
+	.positionPrev = 0,
+	.positionChange = 0
+};
+
 typedef struct Command { // (1) Define struct for received data.
   int16_t speed1;
   int16_t speed2;
@@ -186,12 +226,12 @@ int main(void)
 		isCommandReceived = 0;
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // (3) Toggle LED to indicate that data has been received.
 		// (4) Update feedback with current motor speeds.
-		/*feedback.speed1 = motor1Control.speed;
+		feedback.speed1 = motor1Control.speed;
 		feedback.speed2 = motor2Control.speed;
-		feedback.speed3 = motor3Control.speed;*/
-		feedback.speed1 = (int16_t)TIM1->CNT;
+		feedback.speed3 = motor3Control.speed;
+		/*feedback.speed1 = (int16_t)TIM1->CNT;
 		feedback.speed2 = (int16_t)TIM3->CNT;
-		feedback.speed3 = (int16_t)TIM4->CNT;
+		feedback.speed3 = (int16_t)TIM4->CNT;*/
 
 		TIM2->CCR1 = command.speed1; // esimene draiver
 		TIM2->CCR2 = 0; // esimene draiver
@@ -522,9 +562,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 0;
+  htim6.Init.Prescaler = 25 - 1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 65535;
+  htim6.Init.Period = 63999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -834,7 +874,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-  // Motor control calculations can be called from here
+	// Motor control calculations can be called from here
+
+	// Second motor <=> J6 encoder socket <=> SECOND ENCODER
+	// Third motor <=> J7 encoder socket <=> THIRD ENCODER
+	// First motor <=> J3 encoder socket <=> FIRST ENCODER
 }
 
 /* USER CODE END 4 */
