@@ -1,13 +1,28 @@
 from tkinter import *
+import serial
+import struct
 
 def sel():
-   selection = ""
-   selection += "Motor #1 speed: " + str(motor1.get()) + "\n"
-   selection += "Motor #2 speed: " + str(motor2.get()) + "\n"
-   selection += "Motor #3 speed: " + str(motor3.get()) + "\n"
-   selection += "Thrower speed: " + str(thrower_speed.get()) + "\n"
-   selection += "Thrower angle: " + str(thrower_angle.get()) + "\n"
-   label.config(text = selection)
+    ser = serial.Serial(
+        port='COM9',
+        baudrate=115200,
+        parity=serial.PARITY_NONE,
+        bytesize=serial.EIGHTBITS
+        )
+    selection = ""
+    if(ser.isOpen()):
+        selection += "Serial is OPEN, data sent\n"
+        data = struct.pack('<3h3H', motor1.get(), motor2.get(), motor3.get(), thrower_speed.get(), thrower_angle.get(), 0xAAAA)
+        ser.write(data)
+        ser.close()
+    else:
+        selection += "Serial ERROR, could not send data over serial\n"
+    selection += "Motor #1 speed: " + str(motor1.get()) + "\n"
+    selection += "Motor #2 speed: " + str(motor2.get()) + "\n"
+    selection += "Motor #3 speed: " + str(motor3.get()) + "\n"
+    selection += "Thrower speed: " + str(thrower_speed.get()) + "\n"
+    selection += "Thrower angle: " + str(thrower_angle.get()) + "\n"
+    label.config(text = selection)
 
 root = Tk()
 root.geometry("400x300")
