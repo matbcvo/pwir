@@ -14,6 +14,8 @@ def sel():
         selection += "Serial is OPEN, data sent\n"
         data = struct.pack('<3h3H', motor1.get(), motor2.get(), motor3.get(), thrower_speed.get(), thrower_angle.get(), 0xAAAA)
         ser.write(data)
+        response = ser.read_until(struct.pack('<H', 0xAAAA))
+        label_response.config(text = "Response from mainboard: " + str(struct.unpack('<3h1H', response)))
         ser.close()
     else:
         selection += "Serial ERROR, could not send data over serial\n"
@@ -68,6 +70,7 @@ button.grid(row=2, column=0, columnspan=4)
 label = Label(root, anchor="e", justify=LEFT)
 label.grid(row=3, column=0, columnspan=4)
 
-
+label_response = Label(root, anchor="e", justify=LEFT)
+label_response.grid(row=4, column=0, columnspan=6)
 
 root.mainloop()
