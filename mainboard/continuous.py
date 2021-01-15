@@ -2,9 +2,9 @@ import serial
 import struct
 import time
 
-motor1 = 3000
-motor2 = 3000
-motor3 = 3000
+motor1 = 0
+motor2 = 0
+motor3 = 0
 thrower_speed = 3000
 thrower_angle = 2700
 

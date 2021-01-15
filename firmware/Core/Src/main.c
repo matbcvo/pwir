@@ -74,6 +74,7 @@ static void MX_TIM6_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 typedef struct Motor {
+	uint16_t setpoint;
 	uint16_t speed;
 	int16_t pGain;
 	int16_t iGain;
@@ -81,36 +82,47 @@ typedef struct Motor {
 	int16_t position;
 	int16_t positionPrev;
 	int16_t positionChange;
+	int16_t error; // PID error
+	int16_t sumOfErrors; // PID sum of errors
 } Motor;
 
-Motor motor1Control = {
+Motor motor1 = {
+	.setpoint = 0,
 	.speed = 0,
-	.pGain = 0,
-	.iGain = 0,
-	.dGain = 0,
+	.pGain = 2000,
+	.iGain = 1,
+	.dGain = 1,
 	.position = 0,
 	.positionPrev = 0,
-	.positionChange = 0
+	.positionChange = 0,
+	.error = 0,
+	.sumOfErrors = 0
 };
 
-Motor motor2Control = {
+Motor motor2 = {
+	.setpoint = 0,
 	.speed = 0,
-	.pGain = 0,
-	.iGain = 0,
-	.dGain = 0,
+	.pGain = 2000,
+	.iGain = 1,
+	.dGain = 1,
 	.position = 0,
 	.positionPrev = 0,
-	.positionChange = 0
+	.positionChange = 0,
+	.error = 0,
+	.sumOfErrors = 0
 };
 
-Motor motor3Control = {
+Motor motor3 = {
+	.setpoint = 0,
 	.speed = 0,
-	.pGain = 0,
-	.iGain = 0,
-	.dGain = 0,
+	.pGain = 2000,
+	.iGain = 1,
+	.dGain = 1,
 	.position = 0,
 	.positionPrev = 0,
-	.positionChange = 0
+	.positionChange = 0,
+	.error = 0,
+	.sumOfErrors = 0
 };
 
 typedef struct Command { // (1) Define struct for received data.
@@ -225,20 +237,26 @@ int main(void)
 	if (isCommandReceived) { // (2) Only return data when something has been received.
 		isCommandReceived = 0;
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // (3) Toggle LED to indicate that data has been received.
+
+		motor1.setpoint = command.speed1;
+		motor2.setpoint = command.speed2;
+		motor3.setpoint = command.speed3;
+
 		// (4) Update feedback with current motor speeds.
-		feedback.speed1 = motor1Control.speed;
-		feedback.speed2 = motor2Control.speed;
-		feedback.speed3 = motor3Control.speed;
+		feedback.speed1 = motor1.speed;
+		feedback.speed2 = motor2.speed;
+		feedback.speed3 = motor3.speed;
+
 		/*feedback.speed1 = (int16_t)TIM1->CNT;
 		feedback.speed2 = (int16_t)TIM3->CNT;
 		feedback.speed3 = (int16_t)TIM4->CNT;*/
 
-		TIM2->CCR1 = command.speed1; // esimene draiver
+		/*TIM2->CCR1 = command.speed1; // esimene draiver
 		TIM2->CCR2 = 0; // esimene draiver
 		TIM2->CCR3 = command.speed2; // teine draiver
 		TIM2->CCR4 = 0; // teine draiver
 		TIM16->CCR1 = command.speed3; // kolmas draiver
-		TIM17->CCR1 = 0; // kolmas draiver
+		TIM17->CCR1 = 0; // kolmas draiver*/
 
 		/*if (command.speed1 == 1) {
 			TIM2->CCR1 = TIM2->ARR / 2; // esimene draiver
@@ -873,12 +891,87 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+uint32_t PID(Motor* motor, int16_t position) {
+	motor->position = position; // Update motor position from encoder output
+	motor->positionChange = ( position - motor->positionPrev );
+	motor->error = ( motor->setpoint - motor->positionChange ); // Update current PID error
+	motor->sumOfErrors += motor->error; // Add current PID error to PID sum of errors
+	motor->positionPrev = position;
+	uint32_t p = motor->pGain * motor->error;
+	uint32_t i = motor->iGain * motor->sumOfErrors;
+	uint32_t d = motor->dGain * motor->positionChange;
+	if (motor->setpoint == 0) {
+		motor->error = 0;
+		motor->sumOfErrors = 0;
+		p = 0;
+		i = 0;
+		d = 0;
+	}
+	return (p + i + d); // Return PID controller output (speed)
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	// Motor control calculations can be called from here
 
 	// Second motor <=> J6 encoder socket <=> SECOND ENCODER
 	// Third motor <=> J7 encoder socket <=> THIRD ENCODER
 	// First motor <=> J3 encoder socket <=> FIRST ENCODER
+
+	int32_t motor1pid, motor2pid, motor3pid; // Initialize variables for saving PID controller output value
+
+	motor1pid = motor1.speed = PID(&motor1, (int16_t)TIM1->CNT);
+	motor2pid = motor2.speed = PID(&motor2, (int16_t)TIM3->CNT);
+	motor3pid = motor3.speed = PID(&motor3, (int16_t)TIM4->CNT);
+
+	// Overflow check
+	if (motor1pid > 65535) {
+		motor1pid = 65535;
+	}
+	else if (motor1pid < -65535) {
+		motor1pid = -65535;
+	}
+
+	if (motor2pid > 65535) {
+		motor2pid = 65535;
+	}
+	else if (motor2pid < -65535) {
+		motor2pid = -65535;
+	}
+
+	if (motor3pid > 65535) {
+		motor3pid = 65535;
+	}
+	else if (motor3pid < -65535) {
+		motor3pid = -65535;
+	}
+
+	// Set motor speed to PID controller output
+	if (motor1pid > 0) {
+		TIM2->CCR1 = motor1pid;
+		TIM2->CCR2 = 0;
+	}
+	else {
+		TIM2->CCR1 = 0;
+		TIM2->CCR2 = -motor1pid;
+	}
+
+	if (motor2pid > 0) {
+		TIM2->CCR3 = motor2pid;
+		TIM2->CCR4 = 0;
+	}
+	else {
+		TIM2->CCR3 = 0;
+		TIM2->CCR4 = -motor2pid;
+	}
+
+	if (motor3pid > 0) {
+		TIM16->CCR1 = motor3pid;
+		TIM17->CCR1 = 0;
+	}
+	else {
+		TIM16->CCR1 = 0;
+		TIM17->CCR1 = -motor3pid;
+	}
 }
 
 /* USER CODE END 4 */
