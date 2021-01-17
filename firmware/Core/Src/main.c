@@ -897,9 +897,9 @@ uint32_t PID(Motor* motor, int16_t position) {
 	motor->error = ( motor->setpoint - motor->positionChange ); // Update current PID error
 	motor->sumOfErrors += motor->error; // Add current PID error to PID sum of errors
 	motor->positionPrev = position;
-	uint32_t p = motor->pGain * motor->error;
-	uint32_t i = motor->iGain * motor->sumOfErrors;
-	uint32_t d = motor->dGain * motor->positionChange;
+	int32_t p = motor->pGain * motor->error;
+	int32_t i = motor->iGain * motor->sumOfErrors;
+	int32_t d = motor->dGain * motor->positionChange;
 	if (motor->setpoint == 0) { // Speed should be zero, reset all PID calculations
 		motor->error = 0;
 		motor->sumOfErrors = 0;
