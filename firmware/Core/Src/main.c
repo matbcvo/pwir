@@ -75,7 +75,7 @@ static void MX_TIM6_Init(void);
 /* USER CODE BEGIN 0 */
 typedef struct Motor {
 	uint16_t setpoint;
-	uint16_t speed;
+	int32_t speed;
 	int16_t pGain;
 	int16_t iGain;
 	int16_t dGain;
@@ -900,7 +900,7 @@ uint32_t PID(Motor* motor, int16_t position) {
 	uint32_t p = motor->pGain * motor->error;
 	uint32_t i = motor->iGain * motor->sumOfErrors;
 	uint32_t d = motor->dGain * motor->positionChange;
-	if (motor->setpoint == 0) {
+	if (motor->setpoint == 0) { // Speed should be zero, reset all PID calculations
 		motor->error = 0;
 		motor->sumOfErrors = 0;
 		p = 0;
@@ -917,60 +917,59 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	// Third motor <=> J7 encoder socket <=> THIRD ENCODER
 	// First motor <=> J3 encoder socket <=> FIRST ENCODER
 
-	int32_t motor1pid, motor2pid, motor3pid; // Initialize variables for saving PID controller output value
-
-	motor1pid = motor1.speed = PID(&motor1, (int16_t)TIM1->CNT);
-	motor2pid = motor2.speed = PID(&motor2, (int16_t)TIM3->CNT);
-	motor3pid = motor3.speed = PID(&motor3, (int16_t)TIM4->CNT);
+	// Calculate PID and save variable to motor speed
+	motor1.speed = PID(&motor1, (int16_t)TIM1->CNT);
+	motor2.speed = PID(&motor2, (int16_t)TIM3->CNT);
+	motor3.speed = PID(&motor3, (int16_t)TIM4->CNT);
 
 	// Overflow check
-	if (motor1pid > 65535) {
-		motor1pid = 65535;
+	if (motor1.speed > 65535) {
+		motor1.speed = 65535;
 	}
-	else if (motor1pid < -65535) {
-		motor1pid = -65535;
-	}
-
-	if (motor2pid > 65535) {
-		motor2pid = 65535;
-	}
-	else if (motor2pid < -65535) {
-		motor2pid = -65535;
+	else if (motor1.speed < -65535) {
+		motor1.speed = -65535;
 	}
 
-	if (motor3pid > 65535) {
-		motor3pid = 65535;
+	if (motor2.speed > 65535) {
+		motor2.speed = 65535;
 	}
-	else if (motor3pid < -65535) {
-		motor3pid = -65535;
+	else if (motor2.speed < -65535) {
+		motor2.speed = -65535;
+	}
+
+	if (motor3.speed > 65535) {
+		motor3.speed = 65535;
+	}
+	else if (motor3.speed < -65535) {
+		motor3.speed = -65535;
 	}
 
 	// Set motor speed to PID controller output
-	if (motor1pid > 0) {
-		TIM2->CCR1 = motor1pid;
+	if (motor1.speed > 0) {
+		TIM2->CCR1 = motor1.speed;
 		TIM2->CCR2 = 0;
 	}
 	else {
 		TIM2->CCR1 = 0;
-		TIM2->CCR2 = -motor1pid;
+		TIM2->CCR2 = -motor1.speed;
 	}
 
-	if (motor2pid > 0) {
-		TIM2->CCR3 = motor2pid;
+	if (motor2.speed > 0) {
+		TIM2->CCR3 = motor2.speed;
 		TIM2->CCR4 = 0;
 	}
 	else {
 		TIM2->CCR3 = 0;
-		TIM2->CCR4 = -motor2pid;
+		TIM2->CCR4 = -motor2.speed;
 	}
 
-	if (motor3pid > 0) {
-		TIM16->CCR1 = motor3pid;
+	if (motor3.speed > 0) {
+		TIM16->CCR1 = motor3.speed;
 		TIM17->CCR1 = 0;
 	}
 	else {
 		TIM16->CCR1 = 0;
-		TIM17->CCR1 = -motor3pid;
+		TIM17->CCR1 = -motor3.speed;
 	}
 }
 
