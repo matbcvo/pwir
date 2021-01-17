@@ -891,7 +891,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-uint32_t PID(Motor* motor, int16_t position) {
+int32_t PID(Motor* motor, int16_t position) {
 	motor->position = position; // Update motor position from encoder output
 	motor->positionChange = ( position - motor->positionPrev );
 	motor->error = ( motor->setpoint - motor->positionChange ); // Update current PID error
