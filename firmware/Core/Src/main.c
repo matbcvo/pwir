@@ -74,8 +74,8 @@ static void MX_TIM6_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 typedef struct Motor {
-	uint16_t setpoint;
-	int32_t speed;
+	int16_t setpoint; // short ; signed ; -32,768 .. 32,767
+	int32_t speed; // int ; signed ; -2,147,483,648 .. 2,147,483,647
 	int16_t pGain;
 	int16_t iGain;
 	int16_t dGain;
@@ -83,15 +83,15 @@ typedef struct Motor {
 	int16_t positionPrev;
 	int16_t positionChange;
 	int16_t error; // PID error
-	int16_t sumOfErrors; // PID sum of errors
+	int32_t sumOfErrors; // PID sum of errors
 } Motor;
 
 Motor motor1 = {
 	.setpoint = 0,
 	.speed = 0,
-	.pGain = 2000,
-	.iGain = 1,
-	.dGain = 1,
+	.pGain = 1000,
+	.iGain = 10,
+	.dGain = 10,
 	.position = 0,
 	.positionPrev = 0,
 	.positionChange = 0,
@@ -102,9 +102,9 @@ Motor motor1 = {
 Motor motor2 = {
 	.setpoint = 0,
 	.speed = 0,
-	.pGain = 2000,
-	.iGain = 1,
-	.dGain = 1,
+	.pGain = 1000,
+	.iGain = 10,
+	.dGain = 10,
 	.position = 0,
 	.positionPrev = 0,
 	.positionChange = 0,
@@ -115,9 +115,9 @@ Motor motor2 = {
 Motor motor3 = {
 	.setpoint = 0,
 	.speed = 0,
-	.pGain = 2000,
-	.iGain = 1,
-	.dGain = 1,
+	.pGain = 1000,
+	.iGain = 10,
+	.dGain = 10,
 	.position = 0,
 	.positionPrev = 0,
 	.positionChange = 0,
@@ -135,9 +135,15 @@ typedef struct Command { // (1) Define struct for received data.
 } Command;
 
 typedef struct Feedback { // (3) Define struct for sending data. This can be omitted if there is no need for data from mainboard.
-  int16_t speed1;
-  int16_t speed2;
-  int16_t speed3;
+  int32_t speed1;
+  int32_t speed2;
+  int32_t speed3;
+  int16_t positionChange1;
+  int16_t positionChange2;
+  int16_t positionChange3;
+  int16_t encoder1;
+  int16_t encoder2;
+  int16_t encoder3;
   uint16_t delimiter;
 } Feedback;
 
@@ -174,8 +180,14 @@ int main(void)
   // (1) Define an instance of Feedback for sending data.
   Feedback feedback = {
     .speed1 = 0,
+	.encoder1 = 0,
+	.positionChange1 = 0,
 	.speed2 = 0,
+	.encoder2 = 0,
+	.positionChange2 = 0,
 	.speed3 = 0,
+	.encoder3 = 0,
+	.positionChange3 = 0,
 	.delimiter = 0xAAAA
   };
   /* USER CODE END 1 */
@@ -246,34 +258,12 @@ int main(void)
 		feedback.speed1 = motor1.speed;
 		feedback.speed2 = motor2.speed;
 		feedback.speed3 = motor3.speed;
-
-		/*feedback.speed1 = (int16_t)TIM1->CNT;
-		feedback.speed2 = (int16_t)TIM3->CNT;
-		feedback.speed3 = (int16_t)TIM4->CNT;*/
-
-		/*TIM2->CCR1 = command.speed1; // esimene draiver
-		TIM2->CCR2 = 0; // esimene draiver
-		TIM2->CCR3 = command.speed2; // teine draiver
-		TIM2->CCR4 = 0; // teine draiver
-		TIM16->CCR1 = command.speed3; // kolmas draiver
-		TIM17->CCR1 = 0; // kolmas draiver*/
-
-		/*if (command.speed1 == 1) {
-			TIM2->CCR1 = TIM2->ARR / 2; // esimene draiver
-			TIM2->CCR2 = 0; // esimene draiver
-			TIM2->CCR3 = TIM2->ARR / 2; // esimene draiver
-			TIM2->CCR4 = 0; // esimene draiver
-			TIM16->CCR1 = TIM16->ARR / 2; // esimene draiver
-			TIM17->CCR1 = 0; // esimene draiver
-		}
-		else if (command.speed1 == 2) {
-			TIM2->CCR1 = 0; // esimene draiver
-			TIM2->CCR2 = TIM2->ARR / 2; // esimene draiver
-		}
-		else {
-			TIM2->CCR1 = 0; // esimene draiver
-			TIM2->CCR2 = 0; // esimene draiver
-		}*/
+		feedback.positionChange1 = motor1.positionChange;
+		feedback.positionChange2 = motor2.positionChange;
+		feedback.positionChange3 = motor3.positionChange;
+		feedback.encoder1 = (int16_t)TIM1->CNT;
+		feedback.encoder2 = (int16_t)TIM3->CNT;
+		feedback.encoder3 = (int16_t)TIM4->CNT;
 
 		// Start thrower ESC at lower than 3200
 		// Then set speed to 3200 ... 6400
@@ -944,7 +934,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		motor3.speed = -65535;
 	}
 
-	// Set motor speed to PID controller output
+	// Change PWM duty cycle by motor speed
 	if (motor1.speed > 0) {
 		TIM2->CCR1 = motor1.speed;
 		TIM2->CCR2 = 0;
