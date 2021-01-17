@@ -243,9 +243,6 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  //HAL_Delay(1000);
-	  // Send command: 00 00 00 00 00 00 00 00 AA AA
-	  //               01
-	  //               02
 	if (isCommandReceived) { // (2) Only return data when something has been received.
 		isCommandReceived = 0;
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // (3) Toggle LED to indicate that data has been received.
