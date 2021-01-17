@@ -917,7 +917,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	// Third motor <=> J7 encoder socket <=> THIRD ENCODER
 	// First motor <=> J3 encoder socket <=> FIRST ENCODER
 
-	// Calculate PID and save variable to motor speed
+	// Calculate PID and save PID controller output to motor speed
 	motor1.speed = PID(&motor1, (int16_t)TIM1->CNT);
 	motor2.speed = PID(&motor2, (int16_t)TIM3->CNT);
 	motor3.speed = PID(&motor3, (int16_t)TIM4->CNT);
