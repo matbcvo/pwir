@@ -144,6 +144,9 @@ typedef struct Feedback { // (3) Define struct for sending data. This can be omi
   int16_t encoder1;
   int16_t encoder2;
   int16_t encoder3;
+  int32_t sumOfErrors1;
+  int32_t sumOfErrors2;
+  int32_t sumOfErrors3;
   uint16_t delimiter;
 } Feedback;
 
@@ -261,6 +264,9 @@ int main(void)
 		feedback.encoder1 = (int16_t)TIM1->CNT;
 		feedback.encoder2 = (int16_t)TIM3->CNT;
 		feedback.encoder3 = (int16_t)TIM4->CNT;
+		feedback.sumOfErrors1 = motor1.sumOfErrors;
+		feedback.sumOfErrors2 = motor2.sumOfErrors;
+		feedback.sumOfErrors3 = motor3.sumOfErrors;
 
 		// Start thrower ESC at lower than 3200
 		// Then set speed to 3200 ... 6400
@@ -883,6 +889,13 @@ int32_t PID(Motor* motor, int16_t position) {
 	motor->positionChange = ( position - motor->positionPrev );
 	motor->error = ( motor->setpoint - motor->positionChange ); // Update current PID error
 	motor->sumOfErrors += motor->error; // Add current PID error to PID sum of errors
+	// PID sum of errors overflow check
+	if (motor->sumOfErrors > (65535 / motor->iGain)) {
+		motor->sumOfErrors = (65535 / motor->iGain);
+	}
+	else if (motor->sumOfErrors < -(65535 / motor->iGain)) {
+		motor->sumOfErrors = -(65535 / motor->iGain);
+	}
 	motor->positionPrev = position;
 	int32_t p = motor->pGain * motor->error;
 	int32_t i = motor->iGain * motor->sumOfErrors;
