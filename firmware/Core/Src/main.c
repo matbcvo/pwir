@@ -272,7 +272,16 @@ int main(void)
 		// Then set speed to 3200 ... 6400
 		TIM8->CCR1 = command.throwerSpeed; // thrower
 
-		TIM15->CCR2 = command.throwerAngle; // thrower angle
+		// Thrower angle overflow check (2700 min 6900 max)
+		if (command.throwerAngle > 6900) {
+			TIM15->CCR2 = 6900;
+		}
+		else if (command.throwerAngle < 2700) {
+			TIM15->CCR2 = 2700;
+		}
+		else {
+			TIM15->CCR2 = command.throwerAngle;
+		}
 
 		CDC_Transmit_FS(&feedback, sizeof(feedback)); // (5) Send data over USB.
 		//HAL_Delay(1000);
