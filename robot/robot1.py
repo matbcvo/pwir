@@ -27,19 +27,29 @@ except FileNotFoundError:
 print("Saved colors: ", saved_colors)
 def stop():
     ser.write(f"sd:0:0:0\n".encode())
+    
+    while ser.inWaiting():
+        get = ser.readline().decode()
+        print("get:", get)
 
 def right():
-    ser.write(f"sd:5:5:5\n".encode())
-    #get = ser.readline().decode()
-    #print("get:", get)
     
-def left():
+    """if ser.in_waiting > 0:
+        inputbuff = ser.readline()
+        inputbuff = inputbuff.decode('UTF-8').rstrip("\n")
+        print(inputbuff)"""
+    ser.write(f"sd:5:5:5\n".encode())
+    while ser.inWaiting():
+        get = ser.readline().decode()
+        print("get:", get)
+    
+"""def left():
     ser.write(f"sd:-5:-5:-5\n".encode())
     #get = ser.readline().decode()
     #print("get:", get)
     
 def fwd():
-    ser.write(f"sd:-10:10:0\n".encode())
+    ser.write(f"sd:-10:10:0\n".encode())"""
     
 rightWheelAngle = 120
 leftWheelAngle = 240
@@ -47,6 +57,12 @@ rearWheelAngle = 0
 
 def toBall(ball_y, ball_x):
     #robotSpeed = sqrt(robotSpeedX * robotSpeedX + robotSpeedY * robotSpeedY)
+    
+        
+    """if ser.in_waiting > 0:
+        inputbuff = ser.readline()
+        inputbuff = inputbuff.decode('UTF-8').rstrip("\n")
+        print(inputbuff)"""
     robotSpeed = -20
     ball_x = ball_x - 320
     robotDirectionAngle = math.degrees(math.atan2(ball_y, ball_x))
@@ -61,19 +77,31 @@ def toBall(ball_y, ball_x):
     print(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n")
     ser.write(str(f"sd:"+str(int(rightWheelLinearVelocity))+":"+str(int(leftWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n").encode())
     
-    
-    
+    if ser.in_waiting > 0:
+        line = ""
+        char = ser.read().decode()
+        #print("get:", get)
+        while char != "\n":
+            line += char
+            char=ser.read().decode()
+        print(line)
+        
+        
 # Start video capture
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+#cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+#print("kumb")
+#cap.set(cv2.CAP_PROP_EXPOSURE , 0)
 cam_heating_timer = 0
 while cap.isOpened():
     # 1. OpenCV gives you a BGR image
     _, bgr = cap.read()
     
-    #autowhitebalance ja autoexposure maha!
     
+    #autowhitebalance ja autoexposure maha!
+
     # 2. Convert BGR to HSV where color distributions are better
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
     #cv2.imshow("hsv", hsv)
@@ -85,6 +113,9 @@ while cap.isOpened():
         mask = cv2.bitwise_or(mask, color_mask)
         
     filtered_image = cv2.bitwise_or(bgr, bgr, mask=mask)
+    
+    #rotated_image = cv2.rotate(filtered_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    #cv2.imshow("filtered", filtered_image)
     blurred = cv2.GaussianBlur(filtered_image, (11, 11), 0)
     img_gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
     #ret, im = cv2.threshold(filtered_image, 65, 255, cv2.THRESH_BINARY_INV)
@@ -100,7 +131,6 @@ while cap.isOpened():
         # centroid
         c = max(contours, key=cv2.contourArea)
         ((x, y), radius) = cv2.minEnclosingCircle(c)
-        #print("c:", c)
         M = cv2.moments(c)
         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
         print("This is the center:", center)
@@ -113,24 +143,14 @@ while cap.isOpened():
             cv2.circle(filtered_image, center, 5, (0, 0, 255), -1)
             #give some time for camera to "warm up"
             if cam_heating_timer > 100:
-                #print("lezgo")
+                print("lezgo")
                 toBall(center[1], center[0])
-                """if center[0] < 350 and center[0]>330 :
-                    print("Ball straight ahead!")
-                    #fwd()
-                    #toBall(center[1],center[0])"""
-                if center[1] > 280:
-                    stop()
-                        
-    elif cam_heating_timer > 100:
+                
+    if (cam_heating_timer > 100) & (int(len(contours)) == 0):
         right()
 	    	
     #cv2.imshow("img", img)
     cv2.imshow("filtered", filtered_image)
-    get = ser.readline().decode()
-    print("get:", get)
-    
-    
     cam_heating_timer += 1
     
     key = cv2.waitKey(10)
