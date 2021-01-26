@@ -11,6 +11,7 @@ import json
 import numpy as np
 import imutils
 import math
+import struct
 ###MAINBOARDIGA SUHTLEMISE LOOGIKA VIGANE; KIRJUTAN LIIGA KIIRESTI, MAINBOARD CONNECTION LÄHEB KATKI. VÕI SIIS while ser.inWaiting():
 
 ball_y_requirement = 340
@@ -63,7 +64,7 @@ def toBall(ball_y, ball_x):
         inputbuff = ser.readline()
         inputbuff = inputbuff.decode('UTF-8').rstrip("\n")
         print(inputbuff)"""
-    robotSpeed = -20
+    robotSpeed = 15
     ball_x = ball_x - 320
     robotDirectionAngle = math.degrees(math.atan2(ball_y, ball_x))
     print("robotDirectionAngle: ",robotDirectionAngle)
@@ -75,23 +76,35 @@ def toBall(ball_y, ball_x):
     print("leftWheelLinearVelocity = " + str(leftWheelLinearVelocity))
     print("rearWheelLinearVelocity = " + str(rearWheelLinearVelocity))
     print(f"sd:"+str(int(leftWheelLinearVelocity))+":"+str(int(rightWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n")
-    ser.write(str(f"sd:"+str(int(rightWheelLinearVelocity))+":"+str(int(leftWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n").encode())
+    #ser.write(str(f"sd:"+str(int(rightWheelLinearVelocity))+":"+str(int(leftWheelLinearVelocity))+":"+str(int(rearWheelLinearVelocity))+"\n").encode())
     
-    if ser.in_waiting > 0:
-        line = ""
-        char = ser.read().decode()
-        #print("get:", get)
-        while char != "\n":
-            line += char
-            char=ser.read().decode()
-        print(line)
+    motor1 = int(rightWheelLinearVelocity) #parem ratas
+    motor2 = int(rearWheelLinearVelocity) #tagumine
+    motor3 = int(leftWheelLinearVelocity) #vasak
+    thrower_speed = 3000
+    thrower_angle = 2700
+    try:
+        ser = serial.Serial(
+            port='/dev/ttyACM0',
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if(ser.isOpen()):
+            data = struct.pack('<3h3H', motor1, motor2, motor3, thrower_speed, thrower_angle, 0xAAAA)
+            ser.write(data)
+            ser.close()
+        else:
+            print("Serial is not open, cannot send data...")
+    except serial.SerialException as error:
+        print(error)
         
         
 # Start video capture
 cap = cv2.VideoCapture(4)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-#cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
 #print("kumb")
 #cap.set(cv2.CAP_PROP_EXPOSURE , 0)
 cam_heating_timer = 0
@@ -115,7 +128,7 @@ while cap.isOpened():
     filtered_image = cv2.bitwise_or(bgr, bgr, mask=mask)
     
     #rotated_image = cv2.rotate(filtered_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    #cv2.imshow("filtered", filtered_image)
+    cv2.imshow("filtered", filtered_image)
     blurred = cv2.GaussianBlur(filtered_image, (11, 11), 0)
     img_gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
     #ret, im = cv2.threshold(filtered_image, 65, 255, cv2.THRESH_BINARY_INV)
@@ -144,7 +157,7 @@ while cap.isOpened():
             #give some time for camera to "warm up"
             if cam_heating_timer > 100:
                 print("lezgo")
-                toBall(center[1], center[0])
+                #toBall(center[1], center[0])
                 
     if (cam_heating_timer > 100) & (int(len(contours)) == 0):
         right()
