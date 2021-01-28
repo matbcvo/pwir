@@ -24,7 +24,8 @@ def sel():
     selection += "Motor #3 speed: " + str(motor3.get()) + "\n"
     selection += "Thrower speed: " + str(thrower_speed.get()) + "\n"
     selection += "Thrower angle: " + str(thrower_angle.get()) + "\n"
-    label.config(text = selection)"""
+    label.config(text = selection)
+"""
 
 root = Tk()
 root.geometry("400x300")
@@ -33,21 +34,21 @@ label_motor1 = Label(root, text="Motor #1")
 label_motor1.grid(row=0, column=1)
 
 motor1 = IntVar()
-scale = Scale( root, variable = motor1, to=100 )
+scale = Scale( root, variable = motor1, from_=-50, to=50 )
 scale.grid(row=1, column=1)
 
 label_motor2 = Label(root, text="Motor #2")
 label_motor2.grid(row=0, column=2)
 
 motor2 = IntVar()
-scale = Scale( root, variable = motor2, to=100 )
+scale = Scale( root, variable = motor2, from_=-50, to=50 )
 scale.grid(row=1, column=2)
 
 label_motor3 = Label(root, text="Motor #3")
 label_motor3.grid(row=0, column=3)
 
 motor3 = IntVar()
-scale = Scale( root, variable = motor3, to=100 )
+scale = Scale( root, variable = motor3, from_=-50, to=50 )
 scale.grid(row=1, column=3)
 
 label_thrower_speed = Label(root, text="Thrower Speed")
