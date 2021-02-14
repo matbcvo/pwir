@@ -8,6 +8,9 @@ Martin Vooremäe - Programming / Electronics
 Martin Rahuoja - Programming
 
 Aksel Bulavs - Mechanics
+## HOW TO RUN
+"python3 robot1.py" in Terminal
+
 
 ## Repository structure
 
